@@ -53,7 +53,9 @@ class FeatureInput(object):
 
                 print("Loading rmvpe model")
                 self.model_rmvpe = RMVPE(
-                    "assets/rmvpe/rmvpe.pt", is_half=is_half, device="cuda"
+                    os.path.join(os.path.dirname(__file__), "../../../..", "assets/rmvpe/rmvpe.pt"),
+                    is_half=is_half,
+                    device="cuda"
                 )
             f0 = self.model_rmvpe.infer_from_audio(x, thred=0.03)
         return f0
