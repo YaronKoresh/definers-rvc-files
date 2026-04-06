@@ -32,7 +32,4 @@ def load_hubert(config):
         hubert_model = hubert_model.float()
     return hubert_model.eval()
 
-
-
-
-
+

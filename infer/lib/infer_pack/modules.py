@@ -3,10 +3,9 @@ import math
 from typing import Optional, Tuple
 
 import numpy as np
-import scipy
 import torch
 from torch import nn
-from torch.nn import AvgPool1d, Conv1d, Conv2d, ConvTranspose1d
+from torch.nn import Conv1d, Conv2d, ConvTranspose1d
 from torch.nn import functional as F
 from torch.nn.utils import remove_weight_norm, weight_norm
 
@@ -84,9 +83,6 @@ class ConvReluNorm(nn.Module):
 
 
 class DDSConv(nn.Module):
-    """
-    Dialted and Depth-Separable Convolution
-    """
 
     def __init__(self, channels, kernel_size, n_layers, p_dropout=0.0):
         super(DDSConv, self).__init__()
@@ -174,7 +170,7 @@ class WN(torch.nn.Module):
             in_layer = torch.nn.utils.weight_norm(in_layer, name="weight")
             self.in_layers.append(in_layer)
 
-            # last one is not necessary
+                                       
             if i < n_layers - 1:
                 res_skip_channels = 2 * hidden_channels
             else:
@@ -437,9 +433,8 @@ class Log(nn.Module):
 
 
 class Flip(nn.Module):
-    # torch.jit.script() Compiled functions \
-    # can't take variable number of arguments or \
-    # use keyword-only arguments with defaults
+                                             
+                                                  
     def forward(
         self,
         x: torch.Tensor,
@@ -588,7 +583,7 @@ class ConvFlow(nn.Module):
         h = self.proj(h) * x_mask
 
         b, c, t = x0.shape
-        h = h.reshape(b, c, -1, t).permute(0, 1, 3, 2)  # [b, cx?, t] -> [b, c, t, ?]
+        h = h.reshape(b, c, -1, t).permute(0, 1, 3, 2)                               
 
         unnormalized_widths = h[..., : self.num_bins] / math.sqrt(self.filter_channels)
         unnormalized_heights = h[..., self.num_bins : 2 * self.num_bins] / math.sqrt(
@@ -613,7 +608,4 @@ class ConvFlow(nn.Module):
         else:
             return x
 
-
-
-
-
+

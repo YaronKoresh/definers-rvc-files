@@ -2,16 +2,14 @@ import os
 import sys
 import contextlib
 import torch
-import intel_extension_for_pytorch as ipex  # pylint: disable=import-error, unused-import
+import intel_extension_for_pytorch as ipex                                               
 from hiijacks import ipex_hijacks
 from .attention import attention_init
 
-# pylint: disable=protected-access, missing-function-docstring, line-too-long
-
-
-def ipex_init():  # pylint: disable=too-many-statements
+                                                                             
+def ipex_init():                                       
     try:
-        # Replace cuda with xpu:
+                                
         torch.cuda.current_device = torch.xpu.current_device
         torch.cuda.current_stream = torch.xpu.current_stream
         torch.cuda.device = torch.xpu.device
@@ -91,9 +89,8 @@ def ipex_init():  # pylint: disable=too-many-statements
         torch.cuda.CharStorage = torch.xpu.CharStorage
         torch.cuda.__file__ = torch.xpu.__file__
         torch.cuda._is_in_bad_fork = torch.xpu.lazy_init._is_in_bad_fork
-        # torch.cuda.is_current_stream_capturing = torch.xpu.is_current_stream_capturing
+                                                                                        
 
-        # Memory:
         torch.cuda.memory = torch.xpu.memory
         if "linux" in sys.platform and "WSL2" in os.popen("uname -a").read():
             torch.xpu.empty_cache = lambda: None
@@ -115,7 +112,7 @@ def ipex_init():  # pylint: disable=too-many-statements
             torch.xpu.reset_accumulated_memory_stats
         )
 
-        # RNG:
+              
         torch.cuda.get_rng_state = torch.xpu.get_rng_state
         torch.cuda.get_rng_state_all = torch.xpu.get_rng_state_all
         torch.cuda.set_rng_state = torch.xpu.set_rng_state
@@ -126,30 +123,30 @@ def ipex_init():  # pylint: disable=too-many-statements
         torch.cuda.seed_all = torch.xpu.seed_all
         torch.cuda.initial_seed = torch.xpu.initial_seed
 
-        # AMP:
+              
         torch.cuda.amp = torch.xpu.amp
         if not hasattr(torch.cuda.amp, "common"):
             torch.cuda.amp.common = contextlib.nullcontext()
         torch.cuda.amp.common.amp_definitely_not_available = lambda: False
         try:
             torch.cuda.amp.GradScaler = torch.xpu.amp.GradScaler
-        except Exception:  # pylint: disable=broad-exception-caught
+        except Exception:                                          
             try:
                 from .gradscaler import (
                     gradscaler_init,
-                )  # pylint: disable=import-outside-toplevel, import-error
+                )                                                         
 
                 gradscaler_init()
                 torch.cuda.amp.GradScaler = torch.xpu.amp.GradScaler
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:                                          
                 torch.cuda.amp.GradScaler = ipex.cpu.autocast._grad_scaler.GradScaler
 
-        # C
+           
         torch._C._cuda_getCurrentRawStream = ipex._C._getCurrentStream
         ipex._C._DeviceProperties.major = 2023
         ipex._C._DeviceProperties.minor = 2
 
-        # Fix functions with ipex:
+                                  
         torch.cuda.mem_get_info = lambda device=None: [
             (
                 torch.xpu.get_device_properties(device).total_memory
@@ -183,13 +180,10 @@ def ipex_init():  # pylint: disable=too-many-statements
             from diffusers import ipex_diffusers
 
             ipex_diffusers()
-        except Exception:  # pylint: disable=broad-exception-caught
+        except Exception:                                          
             pass
     except Exception as e:
         return False, e
     return True, None
 
-
-
-
-
+

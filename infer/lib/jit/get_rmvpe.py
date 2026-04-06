@@ -11,7 +11,4 @@ def get_rmvpe(model_path="assets/rmvpe/rmvpe.pt", device=torch.device("cpu")):
     model = model.to(device)
     return model
 
-
-
-
-
+

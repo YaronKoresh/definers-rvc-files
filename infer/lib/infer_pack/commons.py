@@ -17,14 +17,7 @@ def get_padding(kernel_size, dilation=1):
     return int((kernel_size * dilation - dilation) / 2)
 
 
-# def convert_pad_shape(pad_shape):
-#     l = pad_shape[::-1]
-#     pad_shape = [item for sublist in l for item in sublist]
-#     return pad_shape
-
-
 def kl_divergence(m_p, logs_p, m_q, logs_q):
-    """KL(P||Q)"""
     kl = (logs_q - logs_p) - 0.5
     kl += (
         0.5 * (torch.exp(2.0 * logs_p) + ((m_p - m_q) ** 2)) * torch.exp(-2.0 * logs_q)
@@ -33,7 +26,6 @@ def kl_divergence(m_p, logs_p, m_q, logs_q):
 
 
 def rand_gumbel(shape):
-    """Sample from .e Gumbel distribution, protect from .erflows."""
     uniform_samples = torch.rand(shape) * 0.99998 + 0.00001
     return -torch.log(-torch.log(uniform_samples))
 
@@ -114,12 +106,6 @@ def fused_add_tanh_sigmoid_multiply(input_a, input_b, n_channels):
     return acts
 
 
-# def convert_pad_shape(pad_shape):
-#     l = pad_shape[::-1]
-#     pad_shape = [item for sublist in l for item in sublist]
-#     return pad_shape
-
-
 def convert_pad_shape(pad_shape: List[List[int]]) -> List[int]:
     return torch.tensor(pad_shape).flip(0).reshape(-1).int().tolist()
 
@@ -137,10 +123,6 @@ def sequence_mask(length: torch.Tensor, max_length: Optional[int] = None):
 
 
 def generate_path(duration, mask):
-    """
-    duration: [b, 1, t_x]
-    mask: [b, 1, t_y, t_x]
-    """
     device = duration.device
 
     b, _, t_y, t_x = mask.shape
@@ -171,7 +153,4 @@ def clip_grad_value_(parameters, clip_value, norm_type=2):
     total_norm = total_norm ** (1.0 / norm_type)
     return total_norm
 
-
-
-
-
+

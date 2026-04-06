@@ -107,7 +107,4 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
             logger.info("Executed torch.cuda.empty_cache()")
     yield "\n".join(infos)
 
-
-
-
-
+

@@ -7,14 +7,14 @@ import torch
 from . import jit
 
 try:
-    # Fix "Torch not compiled with CUDA enabled"
-    import intel_extension_for_pytorch as ipex  # pylint: disable=import-error, unused-import
+                                                
+    import intel_extension_for_pytorch as ipex                                               
 
     if torch.xpu.is_available():
         from ..modules.ipex import ipex_init
 
         ipex_init()
-except Exception:  # pylint: disable=broad-exception-caught
+except Exception:                                          
     pass
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,21 +30,6 @@ class STFT(torch.nn.Module):
     def __init__(
         self, filter_length=4096, hop_length=256, win_length=None, window="hann"
     ):
-        """
-        This module implements an STFT using 1D convolution and 1D transpose convolutions.
-        This is a bit tricky so there are some cases that probably won't work as working
-        out the same sizes before and after in all overlap add setups is tough. Right now,
-        this code should work with hop lengths that are half the filter length (50% overlap
-        between frames).
-
-        Keyword Arguments:
-            filter_length {int} -- Length of filters used (default: {1024})
-            hop_length {int} -- Hop length of STFT (restrict to 50% overlap between frames) (default: {512})
-            win_length {[type]} -- Length of the window function applied to each frame (if not specified, it
-                equals the filter length). (default: {None})
-            window {str} -- Type of window to use (options are bartlett, hann, hamming, blackman, blackmanharris)
-                (default: {'hann'})
-        """
         super(STFT, self).__init__()
         self.filter_length = filter_length
         self.hop_length = hop_length
@@ -62,12 +47,12 @@ class STFT(torch.nn.Module):
         inverse_basis = torch.FloatTensor(np.linalg.pinv(fourier_basis))
 
         assert filter_length >= self.win_length
-        # get window and zero center pad it to filter_length
+                                                            
         fft_window = get_window(window, self.win_length, fftbins=True)
         fft_window = pad_center(fft_window, size=filter_length)
         fft_window = torch.from_numpy(fft_window).float()
 
-        # window the bases
+                          
         forward_basis *= fft_window
         inverse_basis = (inverse_basis.T * fft_window).T
 
@@ -76,17 +61,6 @@ class STFT(torch.nn.Module):
         self.register_buffer("fft_window", fft_window.float())
 
     def transform(self, input_data, return_phase=False):
-        """Take input data (audio) to STFT domain.
-
-        Arguments:
-            input_data {tensor} -- Tensor of floats, with shape (num_batch, num_samples)
-
-        Returns:
-            magnitude {tensor} -- Magnitude of STFT with shape (num_batch,
-                num_frequencies, num_frames)
-            phase {tensor} -- Phase of STFT with shape (num_batch,
-                num_frequencies, num_frames)
-        """
         input_data = F.pad(
             input_data,
             (self.pad_amount, self.pad_amount),
@@ -107,19 +81,6 @@ class STFT(torch.nn.Module):
             return magnitude
 
     def inverse(self, magnitude, phase):
-        """Call the inverse STFT (iSTFT), given magnitude and phase tensors produced
-        by the ```transform``` function.
-
-        Arguments:
-            magnitude {tensor} -- Magnitude of STFT with shape (num_batch,
-                num_frequencies, num_frames)
-            phase {tensor} -- Phase of STFT with shape (num_batch,
-                num_frequencies, num_frames)
-
-        Returns:
-            inverse_transform {tensor} -- Reconstructed audio given magnitude and phase. Of
-                shape (num_batch, num_samples)
-        """
         cat = torch.cat(
             [magnitude * torch.cos(phase), magnitude * torch.sin(phase)], dim=1
         )
@@ -142,15 +103,6 @@ class STFT(torch.nn.Module):
         return inverse_transform
 
     def forward(self, input_data):
-        """Take input data (audio) to STFT domain and then back to audio.
-
-        Arguments:
-            input_data {tensor} -- Tensor of floats, with shape (num_batch, num_samples)
-
-        Returns:
-            reconstruction {tensor} -- Reconstructed audio given magnitude and phase. Of
-                shape (num_batch, num_samples)
-        """
         self.magnitude, self.phase = self.transform(input_data, return_phase=True)
         reconstruction = self.inverse(self.magnitude, self.phase)
         return reconstruction
@@ -199,7 +151,7 @@ class ConvBlockRes(nn.Module):
             nn.BatchNorm2d(out_channels, momentum=momentum),
             nn.ReLU(),
         )
-        # self.shortcut:Optional[nn.Module] = None
+                                                  
         if in_channels != out_channels:
             self.shortcut = nn.Conv2d(in_channels, out_channels, (1, 1))
 
@@ -271,7 +223,7 @@ class ResEncoderBlock(nn.Module):
             return x
 
 
-class Intermediate(nn.Module):  #
+class Intermediate(nn.Module):   
     def __init__(self, in_channels, out_channels, n_inters, n_blocks, momentum=0.01):
         super(Intermediate, self).__init__()
         self.n_inters = n_inters
@@ -404,11 +356,11 @@ class E2E(nn.Module):
             )
 
     def forward(self, mel):
-        # print(mel.shape)
+                          
         mel = mel.transpose(-1, -2).unsqueeze(1)
         x = self.cnn(self.unet(mel)).transpose(1, 2).flatten(-2)
         x = self.fc(x)
-        # print(x.shape)
+                        
         return x
 
 
@@ -564,7 +516,7 @@ class RMVPE:
 
             self.model = self.model.to(device)
         cents_mapping = 20 * np.arange(360) + 1997.3794084376191
-        self.cents_mapping = np.pad(cents_mapping, (4, 4))  # 368
+        self.cents_mapping = np.pad(cents_mapping, (4, 4))       
 
     def mel2hidden(self, mel):
         with torch.no_grad():
@@ -588,24 +540,22 @@ class RMVPE:
         cents_pred = self.to_local_average_cents(hidden, thred=thred)
         f0 = 10 * (2 ** (cents_pred / 1200))
         f0[f0 == 10] = 0
-        # f0 = np.array([10 * (2 ** (cent_pred / 1200)) if cent_pred else 0 for cent_pred in cents_pred])
+                                                                                                         
         return f0
 
     def infer_from_audio(self, audio, thred=0.03):
-        # torch.cuda.synchronize()
-        # t0 = ttime()
+                                  
+                      
         if not torch.is_tensor(audio):
             audio = torch.from_numpy(audio)
         mel = self.mel_extractor(
             audio.float().to(self.device).unsqueeze(0), center=True
         )
-        # print(123123123,mel.device.type)
-        # torch.cuda.synchronize()
-        # t1 = ttime()
+                                          
+                                  
         hidden = self.mel2hidden(mel)
-        # torch.cuda.synchronize()
-        # t2 = ttime()
-        # print(234234,hidden.device.type)
+                                  
+                      
         if "privateuseone" not in str(self.device):
             hidden = hidden.squeeze(0).cpu().numpy()
         else:
@@ -614,16 +564,15 @@ class RMVPE:
             hidden = hidden.astype("float32")
 
         f0 = self.decode(hidden, thred=thred)
-        # torch.cuda.synchronize()
-        # t3 = ttime()
-        # print("hmvpe:%s\t%s\t%s\t%s"%(t1-t0,t2-t1,t3-t2,t3-t0))
+                                  
+                      
         return f0
 
     def to_local_average_cents(self, salience, thred=0.05):
-        # t0 = ttime()
-        center = np.argmax(salience, axis=1)  # 帧长#index
-        salience = np.pad(salience, ((0, 0), (4, 4)))  # 帧长,368
-        # t1 = ttime()
+                      
+        center = np.argmax(salience, axis=1)            
+        salience = np.pad(salience, ((0, 0), (4, 4)))          
+                      
         center += 4
         todo_salience = []
         todo_cents_mapping = []
@@ -632,17 +581,17 @@ class RMVPE:
         for idx in range(salience.shape[0]):
             todo_salience.append(salience[:, starts[idx] : ends[idx]][idx])
             todo_cents_mapping.append(self.cents_mapping[starts[idx] : ends[idx]])
-        # t2 = ttime()
-        todo_salience = np.array(todo_salience)  # 帧长，9
-        todo_cents_mapping = np.array(todo_cents_mapping)  # 帧长，9
+                      
+        todo_salience = np.array(todo_salience)        
+        todo_cents_mapping = np.array(todo_cents_mapping)        
         product_sum = np.sum(todo_salience * todo_cents_mapping, 1)
-        weight_sum = np.sum(todo_salience, 1)  # 帧长
-        devided = product_sum / weight_sum  # 帧长
-        # t3 = ttime()
-        maxx = np.max(salience, axis=1)  # 帧长
+        weight_sum = np.sum(todo_salience, 1)      
+        devided = product_sum / weight_sum      
+                      
+        maxx = np.max(salience, axis=1)      
         devided[maxx <= thred] = 0
-        # t4 = ttime()
-        # print("decode:%s\t%s\t%s\t%s" % (t1 - t0, t2 - t1, t3 - t2, t4 - t3))
+                      
+                                                                               
         return devided
 
 
@@ -657,19 +606,14 @@ if __name__ == "__main__":
     if sampling_rate != 16000:
         audio = librosa.resample(audio, orig_sr=sampling_rate, target_sr=16000)
     model_path = r"D:\BaiduNetdiskDownload\RVC-beta-v2-0727AMD_realtime\rmvpe.pt"
-    thred = 0.03  # 0.01
+    thred = 0.03        
     device = "cuda" if torch.cuda.is_available() else "cpu"
     rmvpe = RMVPE(model_path, is_half=False, device=device)
     t0 = ttime()
     f0 = rmvpe.infer_from_audio(audio, thred=thred)
-    # f0 = rmvpe.infer_from_audio(audio, thred=thred)
-    # f0 = rmvpe.infer_from_audio(audio, thred=thred)
-    # f0 = rmvpe.infer_from_audio(audio, thred=thred)
-    # f0 = rmvpe.infer_from_audio(audio, thred=thred)
+                                                     
+                                                     
     t1 = ttime()
     logger.info("%s %.2f", f0.shape, t1 - t0)
 
-
-
-
-
+

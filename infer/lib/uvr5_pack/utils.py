@@ -23,9 +23,6 @@ def make_padding(width, cropsize, offset):
 
 
 def inference(X_spec, device, model, aggressiveness, data):
-    """
-    data ： dic configs
-    """
 
     def _execute(
         X_mag_pad, roi_size, n_window, device, model, aggressiveness, is_half=True
@@ -120,7 +117,4 @@ def _get_name_params(model_path, model_hash):
                         flag = False
     return param_name_auto, model_params_auto
 
-
-
-
-
+

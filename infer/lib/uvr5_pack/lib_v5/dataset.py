@@ -96,15 +96,15 @@ def augment(X, y, reduction_rate, reduction_mask, mixup_rate, mixup_alpha):
             )
 
         if np.random.uniform() < 0.5:
-            # swap channel
+                          
             X[idx] = X[idx, ::-1]
             y[idx] = y[idx, ::-1]
         if np.random.uniform() < 0.02:
-            # mono
+                  
             X[idx] = X[idx].mean(axis=0, keepdims=True)
             y[idx] = y[idx].mean(axis=0, keepdims=True)
         if np.random.uniform() < 0.02:
-            # inst
+                  
             X[idx] = y[idx]
 
         if np.random.uniform() < mixup_rate and i < len(perm) - 1:
@@ -182,7 +182,4 @@ def make_validation_set(filelist, cropsize, sr, hop_length, n_fft, offset):
 
     return VocalRemoverValidationSet(patch_list)
 
-
-
-
-
+

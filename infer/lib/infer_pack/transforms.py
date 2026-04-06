@@ -206,7 +206,4 @@ def rational_quadratic_spline(
 
         return outputs, logabsdet
 
-
-
-
-
+

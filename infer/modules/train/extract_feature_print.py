@@ -22,7 +22,7 @@ def readwave(wav_path, normalize=False, mono=True):
         if sr != 16000:
             raise ValueError(f"Sample rate is not 16kHz: {sr}")
         feats = torch.from_numpy(wav).float()
-        if feats.dim() == 2:  # double channels
+        if feats.dim() == 2:                   
             if mono:
                 feats = feats.mean(-1)
                 logging.info(f"Averaged stereo channels for {wav_path}")
@@ -38,7 +38,7 @@ def readwave(wav_path, normalize=False, mono=True):
         return feats
     except Exception as e:
         logging.exception(f"Error reading wave file {wav_path}:")
-        raise  # Re-raise the exception after logging
+        raise                                        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract HuBERT features.")
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=os.path.join(args.exp_dir, f"extract_f0_feature_{args.i_part}.log"), level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
-    logging.info(" ".join(sys.argv))  # Log command-line arguments
+    logging.info(" ".join(sys.argv))                              
 
     logging.info(f"exp_dir: {args.exp_dir}")
     wavPath = os.path.join(args.exp_dir, "1_16k_wavs")
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     logging.info(f"load model(s) from {args.model_path}")
     if not os.path.exists(args.model_path):
         logging.error(f"Extracting is shut down because {args.model_path} does not exist.")
-        sys.exit(1)  # Exit with error code
+        sys.exit(1)                        
 
     models, saved_cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
         [args.model_path],
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     model.eval()
 
     todo = sorted(list(os.listdir(wavPath)))[args.i_part::args.n_part]
-    n = max(1, len(todo) // 10)  # 最多打印十条
+    n = max(1, len(todo) // 10)          
     if len(todo) == 0:
         logging.info("no-feature-todo")
     else:
@@ -120,7 +120,7 @@ if __name__ == "__main__":
                             else feats.to(device)
                         ),
                         "padding_mask": padding_mask.to(device),
-                        "output_layer": 9 if args.version == "v1" else 12,  # layer 9
+                        "output_layer": 9 if args.version == "v1" else 12,           
                     }
                     with torch.no_grad():
                         logits = model.extract_features(**inputs)
@@ -142,8 +142,6 @@ if __name__ == "__main__":
         logging.info(f"Finished processing {len(todo)} files in {end_time - start_time:.2f} seconds.")
 
     logging.info("all-feature-done")
-    sys.exit(0)  # Indicate success
+    sys.exit(0)                    
 
-
-
-
+

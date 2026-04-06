@@ -192,7 +192,7 @@ class Predictor:
 
             chunked_sources.append(sources)
         _sources = np.concatenate(chunked_sources, axis=-1)
-        # del self.model
+                        
         progress_bar.close()
         return _sources
 
@@ -241,8 +241,8 @@ class Predictor:
 class MDXNetDereverb:
     def __init__(self, chunks, device):
         self.onnx = "assets/uvr5_weights/onnx_dereverb_By_FoxJoy"
-        self.shifts = 10  # 'Predict with randomised equivariant stabilisation'
-        self.mixing = "min_mag"  # ['default','min_mag','max_mag']
+        self.shifts = 10                                                       
+        self.mixing = "min_mag"                                   
         self.chunks = chunks
         self.margin = 44100
         self.dim_t = 9
@@ -255,7 +255,4 @@ class MDXNetDereverb:
     def _path_audio_(self, input, vocal_root, others_root, format, is_hp3=False):
         self.pred.prediction(input, vocal_root, others_root, format)
 
-
-
-
-
+

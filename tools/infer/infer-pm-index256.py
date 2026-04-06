@@ -7,10 +7,10 @@ import parselmouth
 import torch
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-# import torchcrepe
+                   
 from time import time as ttime
 
-# import pyworld
+                
 import librosa
 import numpy as np
 import soundfile as sf
@@ -23,7 +23,7 @@ from ...infer.lib.infer_pack.models import (
 from scipy.io import wavfile
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_path = r"E:\codes\py39\vits_vc_gpu_train\assets\hubert\hubert_base.pt"  #
+model_path = r"E:\codes\py39\vits_vc_gpu_train\assets\hubert\hubert_base.pt"   
 logger.info("Load model(s) from {}".format(model_path))
 models, saved_cfg, task = checkpoint_utils.load_model_ensemble_and_task(
     [model_path],
@@ -91,7 +91,7 @@ def get_f0(x, p_len, f0_up_key=0):
     ) + 1
     f0_mel[f0_mel <= 1] = 1
     f0_mel[f0_mel > 255] = 255
-    # f0_mel[f0_mel > 188] = 188
+                                
     f0_coarse = np.rint(f0_mel).astype(np.int32)
     return f0_coarse, f0bak
 
@@ -105,9 +105,9 @@ for idx, name in enumerate(
     [
         "冬之花clip1.wav",
     ]
-):  ##
-    wav_path = "todo-songs/%s" % name  #
-    f0_up_key = -2  #
+):    
+    wav_path = "todo-songs/%s" % name   
+    f0_up_key = -2   
     audio, sampling_rate = sf.read(wav_path)
     if len(audio.shape) > 1:
         audio = librosa.to_mono(audio.transpose(1, 0))
@@ -115,7 +115,7 @@ for idx, name in enumerate(
         audio = librosa.resample(audio, orig_sr=sampling_rate, target_sr=16000)
 
     feats = torch.from_numpy(audio).float()
-    if feats.dim() == 2:  # double channels
+    if feats.dim() == 2:                   
         feats = feats.mean(-1)
     assert feats.dim() == 1, feats.dim()
     feats = feats.view(1, -1)
@@ -123,7 +123,7 @@ for idx, name in enumerate(
     inputs = {
         "source": feats.half().to(device),
         "padding_mask": padding_mask.to(device),
-        "output_layer": 9,  # layer 9
+        "output_layer": 9,           
     }
     if torch.cuda.is_available():
         torch.cuda.synchronize()
@@ -132,7 +132,7 @@ for idx, name in enumerate(
         logits = model.extract_features(**inputs)
         feats = model.final_proj(logits[0])
 
-    ####索引优化
+            
     npy = feats[0].cpu().numpy().astype("float32")
     D, I = index.search(npy, 1)
     feats = (
@@ -143,10 +143,10 @@ for idx, name in enumerate(
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     t1 = ttime()
-    # p_len = min(feats.shape[1],10000,pitch.shape[0])#太大了爆显存
-    p_len = min(feats.shape[1], 10000)  #
+                                                             
+    p_len = min(feats.shape[1], 10000)   
     pitch, pitchf = get_f0(audio, p_len, f0_up_key)
-    p_len = min(feats.shape[1], 10000, pitch.shape[0])  # 太大了爆显存
+    p_len = min(feats.shape[1], 10000, pitch.shape[0])          
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     t2 = ttime()
@@ -163,17 +163,16 @@ for idx, name in enumerate(
             .data.cpu()
             .float()
             .numpy()
-        )  # nsf
+        )       
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     t3 = ttime()
     ta0 += t1 - t0
     ta1 += t2 - t1
     ta2 += t3 - t2
-    # wavfile.write("ft-mi_1k-index256-noD-%s.wav"%name, 40000, audio)##
-    # wavfile.write("ft-mi-freeze-vocoder-flow-enc_q_1k-%s.wav"%name, 40000, audio)##
-    # wavfile.write("ft-mi-sim1k-%s.wav"%name, 40000, audio)##
-    wavfile.write("ft-mi-no_opt-no_dropout-%s.wav" % name, 40000, audio)  ##
+                                                                        
+                                                                                     
+    wavfile.write("ft-mi-no_opt-no_dropout-%s.wav" % name, 40000, audio)    
 
 
-logger.debug("%.2fs %.2fs %.2fs", ta0, ta1, ta2)  #
+logger.debug("%.2fs %.2fs %.2fs", ta0, ta1, ta2)   

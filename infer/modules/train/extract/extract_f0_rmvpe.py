@@ -46,7 +46,7 @@ class FeatureInput(object):
 
     def compute_f0(self, path, f0_method):
         x = load_audio(path, self.fs)
-        # p_len = x.shape[0] // self.hop
+                                        
         if f0_method == "rmvpe":
             if hasattr(self, "model_rmvpe") == False:
                 from ....lib.rmvpe import RMVPE
@@ -66,7 +66,7 @@ class FeatureInput(object):
             self.f0_bin - 2
         ) / (self.f0_mel_max - self.f0_mel_min) + 1
 
-        # use 0 or 1
+                    
         f0_mel[f0_mel <= 1] = 1
         f0_mel[f0_mel > self.f0_bin - 1] = self.f0_bin - 1
         f0_coarse = np.rint(f0_mel).astype(int)
@@ -81,7 +81,7 @@ class FeatureInput(object):
             printt("no-f0-todo")
         else:
             printt("todo-f0-%s" % len(paths))
-            n = max(len(paths) // 5, 1)  # 每个进程最多打印5条
+            n = max(len(paths) // 5, 1)              
             for idx, (inp_path, opt_path1, opt_path2) in enumerate(paths):
                 try:
                     if idx % n == 0:
@@ -96,21 +96,20 @@ class FeatureInput(object):
                         opt_path2,
                         featur_pit,
                         allow_pickle=False,
-                    )  # nsf
+                    )       
                     coarse_pit = self.coarse_f0(featur_pit)
                     np.save(
                         opt_path1,
                         coarse_pit,
                         allow_pickle=False,
-                    )  # ori
+                    )       
                 except:
                     printt("f0fail-%s-%s-%s" % (idx, inp_path, traceback.format_exc()))
 
 
 if __name__ == "__main__":
-    # exp_dir=r"E:\codes\py39\dataset\mi-test"
-    # n_p=16
-    # f = open("%s/log_extract_f0.log"%exp_dir, "w")
+                                              
+            
     printt(" ".join(sys.argv))
     featureInput = FeatureInput()
     paths = []
@@ -131,21 +130,5 @@ if __name__ == "__main__":
         featureInput.go(paths[i_part::n_part], "rmvpe")
     except:
         printt("f0_all_fail-%s" % (traceback.format_exc()))
-    # ps = []
-    # for i in range(n_p):
-    #     p = Process(
-    #         target=featureInput.go,
-    #         args=(
-    #             paths[i::n_p],
-    #             f0method,
-    #         ),
-    #     )
-    #     ps.append(p)
-    #     p.start()
-    # for i in range(n_p):
-    #     ps[i].join()
-
-
-
-
-
+             
+                          

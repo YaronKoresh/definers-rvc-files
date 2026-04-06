@@ -55,15 +55,15 @@ class VC:
         if sid == "" or sid == []:
             if (
                 self.hubert_model is not None
-            ):  # 考虑到轮询, 需要加个判断看是否 sid 是由有模型切换到无模型的
+            ):                                     
                 logger.info("Clean model cache")
-                del (self.net_g, self.n_spk, self.hubert_model, self.tgt_sr)  # ,cpt
+                del (self.net_g, self.n_spk, self.hubert_model, self.tgt_sr)        
                 self.hubert_model = self.net_g = self.n_spk = self.hubert_model = (
                     self.tgt_sr
                 ) = None
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
-                ###楼下不这么折腾清理不干净
+                               
                 self.if_f0 = self.cpt.get("f0", 1)
                 self.version = self.cpt.get("version", "v1")
                 if self.version == "v1":
@@ -104,7 +104,7 @@ class VC:
         self.cpt = torch.load(person, map_location=torch.device('cpu'), weights_only=True)
         self.tgt_sr = self.cpt["config"][-1]
         self.pipeline = Pipeline(self.tgt_sr, self.config)
-        self.cpt["config"][-3] = self.cpt["weight"]["emb_g.weight"].shape[0]  # n_spk
+        self.cpt["config"][-3] = self.cpt["weight"]["emb_g.weight"].shape[0]         
         self.if_f0 = self.cpt.get("f0", 1)
         self.version = self.cpt.get("version", "v1")
 
@@ -184,7 +184,7 @@ class VC:
             elif file_index2:
                 file_index = file_index2
             else:
-                file_index = ""  # 防止小白写错，自动帮他替换掉
+                file_index = ""                  
 
             audio_opt = self.pipeline.pipeline(
                 self.hubert_model,
@@ -245,7 +245,7 @@ class VC:
         try:
             dir_path = (
                 dir_path.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
-            )  # 防止小白拷路径头尾带了空格和"和回车
+            )                      
             opt_root = opt_root.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
             os.makedirs(opt_root, exist_ok=True)
             try:
@@ -268,7 +268,7 @@ class VC:
                     f0_method,
                     file_index,
                     file_index2,
-                    # file_big_npy,
+                                   
                     index_rate,
                     filter_radius,
                     resample_sr,
@@ -304,7 +304,4 @@ class VC:
         except:
             yield traceback.format_exc()
 
-
-
-
-
+

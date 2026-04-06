@@ -132,7 +132,4 @@ class CascadedNet(nn.Module):
 
         return pred_mag
 
-
-
-
-
+

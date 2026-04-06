@@ -6,13 +6,12 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-# from .irseq.data.data_utils import compute_mask_indices
+                                                         
 from fairseq.utils import index_put
 
 
-# @torch.jit.script
 def pad_to_multiple(x, multiple, dim=-1, value=0):
-    # Inspired from .tps://github.com/lucidrains/local-attention/blob/master/local_attention/local_attention.py#L41
+                                                                                                                   
     if x is None:
         return None, 0
     tsz = x.size(dim)
@@ -42,7 +41,7 @@ def extract_features(
     if not self.layer_norm_first:
         x = self.layer_norm(x)
 
-    # pad to the sequence length dimension
+                                          
     x, pad_length = pad_to_multiple(x, self.required_seq_len_multiple, dim=-2, value=0)
     if pad_length > 0 and padding_mask is None:
         padding_mask = x.new_zeros((x.size(0), x.size(1)), dtype=torch.bool)
@@ -53,7 +52,7 @@ def extract_features(
         )
     x = F.dropout(x, p=self.dropout, training=self.training)
 
-    # B x T x C -> T x B x C
+                            
     x = x.transpose(0, 1)
 
     layer_results = []
@@ -73,10 +72,10 @@ def extract_features(
     if r is not None:
         x = r
 
-    # T x B x C -> B x T x C
+                            
     x = x.transpose(0, 1)
 
-    # undo paddding
+                   
     if pad_length > 0:
         x = x[:, :-pad_length]
 
@@ -105,33 +104,12 @@ def compute_mask_indices(
     require_same_masks: bool = True,
     mask_dropout: float = 0.0,
 ) -> torch.Tensor:
-    """
-    Computes random mask spans for a given shape
-
-    Args:
-        shape: the the shape for which to compute masks.
-            should be of size 2 where first element is batch size and 2nd is timesteps
-        padding_mask: optional padding mask of the same size as shape, which will prevent masking padded elements
-        mask_prob: probability for each token to be chosen as start of the span to be masked. this will be multiplied by
-            number of timesteps divided by length of mask span to mask approximately this percentage of all elements.
-            however due to overlaps, the actual number will be smaller (unless no_overlap is True)
-        mask_type: how to compute mask lengths
-            static = fixed size
-            uniform = sample from .iform distribution [mask_other, mask_length*2]
-            normal = sample from .rmal distribution with mean mask_length and stdev mask_other. mask is min 1 element
-            poisson = sample from .ssion distribution with lambda = mask length
-        min_masks: minimum number of masked spans
-        no_overlap: if false, will switch to an alternative recursive algorithm that prevents spans from .erlapping
-        min_space: only used if no_overlap is True, this is how many elements to keep unmasked between spans
-        require_same_masks: if true, will randomly drop out masks until same amount of masks remains in each sample
-        mask_dropout: randomly dropout this percentage of masks in each example
-    """
 
     bsz, all_sz = shape
     mask = torch.full((bsz, all_sz), False)
 
     all_num_mask = int(
-        # add a random number for probabilistic rounding
+                                                        
         mask_prob * all_sz / float(mask_length)
         + torch.rand([1]).item()
     )
@@ -336,12 +314,8 @@ def get_hubert_model(
         return feats
 
     hubert_model.infer = infer
-    # hubert_model.forward=infer
-    # hubert_model.forward
-
+                                
+                          
     return hubert_model
 
-
-
-
-
+

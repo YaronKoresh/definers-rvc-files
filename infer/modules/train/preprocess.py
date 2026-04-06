@@ -23,16 +23,16 @@ parser.add_argument("inp_root", help="Input directory")
 parser.add_argument("sr", type=int, help="Sample rate")
 parser.add_argument("n_p", type=int, help="Number of processes")
 parser.add_argument("exp_dir", help="Experiment directory")
-parser.add_argument("--per", type=float, default=3.7, help="Duration per chunk (seconds)") # Configurable
-parser.add_argument("--target_amplitude", type=float, default=0.9, help="Target amplitude") # Configurable
+parser.add_argument("--per", type=float, default=3.7, help="Duration per chunk (seconds)")               
+parser.add_argument("--target_amplitude", type=float, default=0.9, help="Target amplitude")               
 
 args = parser.parse_args()
 
 def norm_write(tmp_audio, idx0, idx1, sr, target_sr=16000, target_amplitude=0.9):
     tmp_max = np.abs(tmp_audio).max()
-    if tmp_max > 1.0:  # Check for clipping (adjust threshold as needed)
+    if tmp_max > 1.0:                                                   
         logging.warning(f"{idx0}-{idx1}-clipped (max: {tmp_max})")
-        tmp_audio = tmp_audio / tmp_max * target_amplitude # Scale to target amplitude
+        tmp_audio = tmp_audio / tmp_max * target_amplitude                            
     else:
         tmp_audio = tmp_audio / tmp_max * target_amplitude
 
@@ -52,11 +52,11 @@ def norm_write(tmp_audio, idx0, idx1, sr, target_sr=16000, target_amplitude=0.9)
 def pipeline(path, idx0, sr, slicer, bh, ah, per, target_amplitude):
     try:
         audio = load_audio(path, sr)
-        audio = signal.lfilter(bh, ah, audio)  # Filter audio
+        audio = signal.lfilter(bh, ah, audio)                
 
         idx1 = 0
-        for chunk in slicer.slice(audio):  # Simplified slicing logic
-            for i in range(int(len(chunk) / (sr * per)) +1): # simplified chunking logic
+        for chunk in slicer.slice(audio):                            
+            for i in range(int(len(chunk) / (sr * per)) +1):                            
                 start = int(sr*per*i)
                 tmp_audio = chunk[start:min(start+int(sr*per), len(chunk))]
                 norm_write(tmp_audio, idx0, idx1, sr, target_sr=16000, target_amplitude=target_amplitude)
@@ -79,10 +79,10 @@ def preprocess_trainset(inp_root, sr, n_p, exp_dir, per, target_amplitude):
     try:
         infos = [(os.path.join(inp_root, name), idx) for idx, name in enumerate(sorted(os.listdir(inp_root)))]
 
-        if n_p <= 1: # Run sequentially
+        if n_p <= 1:                   
             pipeline_mp(infos, sr, slicer, bh, ah, per, target_amplitude)
         else:
-            with multiprocessing.Pool(processes=n_p) as pool: # Use a context manager
+            with multiprocessing.Pool(processes=n_p) as pool:                        
                 pool.starmap(pipeline_mp, [(infos[i::n_p], sr, slicer, bh, ah, per, target_amplitude) for i in range(n_p)])
 
     except Exception as e:
@@ -93,7 +93,4 @@ def preprocess_trainset(inp_root, sr, n_p, exp_dir, per, target_amplitude):
 logging.basicConfig(filename=os.path.join(args.exp_dir, "preprocess.log"), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 preprocess_trainset(args.inp_root, args.sr, args.n_p, args.exp_dir, args.per, args.target_amplitude)
 
-
-
-
-
+

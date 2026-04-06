@@ -1,12 +1,10 @@
 import contextlib
 import importlib
 import torch
-import intel_extension_for_pytorch as ipex  # pylint: disable=import-error, unused-import
+import intel_extension_for_pytorch as ipex                                               
 
-# pylint: disable=protected-access, missing-function-docstring, line-too-long, unnecessary-lambda, no-else-return
-
-
-class CondFunc:  # pylint: disable=missing-class-docstring
+                                                                                                                 
+class CondFunc:                                           
     def __new__(cls, orig_func, sub_func, cond_func):
         self = super(CondFunc, cls).__new__(cls)
         if isinstance(orig_func, str):
@@ -63,32 +61,32 @@ def _shutdown_workers(self):
             for worker_id in range(len(self._workers)):
                 if self._persistent_workers or self._workers_status[worker_id]:
                     self._mark_worker_as_unavailable(worker_id, shutdown=True)
-            for w in self._workers:  # pylint: disable=invalid-name
+            for w in self._workers:                                
                 w.join(timeout=torch.utils.data._utils.MP_STATUS_CHECK_INTERVAL)
-            for q in self._index_queues:  # pylint: disable=invalid-name
+            for q in self._index_queues:                                
                 q.cancel_join_thread()
                 q.close()
         finally:
             if self._worker_pids_set:
                 torch.utils.data._utils.signal_handling._remove_worker_pids(id(self))
                 self._worker_pids_set = False
-            for w in self._workers:  # pylint: disable=invalid-name
+            for w in self._workers:                                
                 if w.is_alive():
                     w.terminate()
 
 
 class DummyDataParallel(
     torch.nn.Module
-):  # pylint: disable=missing-class-docstring, unused-argument, too-few-public-methods
+):                                                                                    
     def __new__(
-        cls, module, device_ids=None, output_device=None, dim=0
-    ):  # pylint: disable=unused-argument
+        cls, module, device_ids=None, _output_device=None, dim=0
+    ):                                   
         if isinstance(device_ids, list) and len(device_ids) > 1:
             print("IPEX backend doesn't support DataParallel on multiple XPU devices")
         return module.to("xpu")
 
 
-def return_null_context(*args, **kwargs):  # pylint: disable=unused-argument
+def return_null_context(*args, **kwargs):                                   
     return contextlib.nullcontext()
 
 
@@ -155,7 +153,7 @@ def interpolate(
     align_corners=None,
     recompute_scale_factor=None,
     antialias=False,
-):  # pylint: disable=too-many-arguments
+):                                      
     if antialias or align_corners is not None:
         return_device = tensor.device
         return_dtype = tensor.dtype
@@ -183,7 +181,7 @@ def interpolate(
 original_linalg_solve = torch.linalg.solve
 
 
-def linalg_solve(A, B, *args, **kwargs):  # pylint: disable=invalid-name
+def linalg_solve(A, B, *args, **kwargs):                                
     if A.device != torch.device("cpu") or B.device != torch.device("cpu"):
         return_device = A.device
         return original_linalg_solve(A.to("cpu"), B.to("cpu"), *args, **kwargs).to(
@@ -306,7 +304,7 @@ def ipex_hijacks():
         lambda orig_func, input, *args, **kwargs: input.device != torch.device("cpu"),
     )
 
-    # Functions with dtype errors:
+                                  
     CondFunc(
         "torch.nn.modules.GroupNorm.forward",
         lambda orig_func, self, input: orig_func(
@@ -338,7 +336,7 @@ def ipex_hijacks():
         and input.dtype != weight.data.dtype,
     )
 
-    # Diffusers Float64 (ARC GPUs doesn't support double or Float64):
+                                                                     
     if not torch.xpu.has_fp64_dtype():
         CondFunc(
             "torch.from_numpy",
@@ -346,14 +344,14 @@ def ipex_hijacks():
             lambda orig_func, ndarray: ndarray.dtype == float,
         )
 
-    # Broken functions when torch.cuda.is_available is True:
+                                                            
     CondFunc(
         "torch.utils.data.dataloader._BaseDataLoaderIter.__init__",
         lambda orig_func, *args, **kwargs: ipex_no_cuda(orig_func, *args, **kwargs),
         lambda orig_func, *args, **kwargs: True,
     )
 
-    # Functions that make compile mad with CondFunc:
+                                                    
     torch.utils.data.dataloader._MultiProcessingDataLoaderIter._shutdown_workers = (
         _shutdown_workers
     )
@@ -364,7 +362,4 @@ def ipex_hijacks():
     torch.nn.functional.interpolate = interpolate
     torch.backends.cuda.sdp_kernel = return_null_context
 
-
-
-
-
+

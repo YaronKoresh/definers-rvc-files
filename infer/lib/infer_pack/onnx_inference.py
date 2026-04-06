@@ -26,7 +26,7 @@ class ContentVec:
 
     def forward(self, wav):
         feats = wav
-        if feats.ndim == 2:  # double channels
+        if feats.ndim == 2:                   
             feats = feats.mean(-1)
         assert feats.ndim == 1, feats.ndim
         feats = np.expand_dims(np.expand_dims(feats, 0), 0)
@@ -35,7 +35,7 @@ class ContentVec:
         return logits.transpose(0, 2, 1)
 
 
-def get_f0_predictor(f0_predictor, hop_length, sampling_rate, **kargs):
+def get_f0_predictor(f0_predictor, hop_length, sampling_rate, **_kargs):
     if f0_predictor == "pm":
         from .b.infer_pack.modules.F0Predictor.PMF0Predictor import PMF0Predictor
 
@@ -101,7 +101,7 @@ class OnnxRVC:
         sid,
         f0_method="dio",
         f0_up_key=0,
-        pad_time=0.5,
+        _pad_time=0.5,
         cr_threshold=0.02,
     ):
         f0_min = 50
@@ -148,7 +148,4 @@ class OnnxRVC:
         out_wav = np.pad(out_wav, (0, 2 * self.hop_size), "constant")
         return out_wav[0:org_length]
 
-
-
-
-
+

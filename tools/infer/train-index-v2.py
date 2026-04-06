@@ -1,6 +1,3 @@
-"""
-格式：直接cid为自带的index位；aid放不下了，通过字典来查，反正就5w个
-"""
 
 import os
 import traceback
@@ -14,7 +11,7 @@ import faiss
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 
-# ###########如果是原始特征要先写save
+                           
 n_cpu = 0
 if n_cpu == 0:
     n_cpu = cpu_count()
@@ -28,9 +25,9 @@ big_npy = np.concatenate(npys, 0)
 big_npy_idx = np.arange(big_npy.shape[0])
 np.random.shuffle(big_npy_idx)
 big_npy = big_npy[big_npy_idx]
-logger.debug(big_npy.shape)  # (6196072, 192)#fp32#4.43G
+logger.debug(big_npy.shape)                             
 if big_npy.shape[0] > 2e5:
-    # if(1):
+            
     info = "Trying doing kmeans %s shape to 10k centers." % big_npy.shape[0]
     logger.info(info)
     try:
@@ -51,12 +48,11 @@ if big_npy.shape[0] > 2e5:
 
 np.save("tools/infer/big_src_feature_mi.npy", big_npy)
 
-##################train+add
-# big_npy=np.load("/bili-coeus/jupyter/jupyterhub-liujing04/vits_ch/inference_f0/big_src_feature_mi.npy")
+                           
 n_ivf = min(int(16 * np.sqrt(big_npy.shape[0])), big_npy.shape[0] // 39)
-index = faiss.index_factory(768, "IVF%s,Flat" % n_ivf)  # mi
+index = faiss.index_factory(768, "IVF%s,Flat" % n_ivf)      
 logger.info("Training...")
-index_ivf = faiss.extract_index_ivf(index)  #
+index_ivf = faiss.extract_index_ivf(index)   
 index_ivf.nprobe = 1
 index.train(big_npy)
 faiss.write_index(

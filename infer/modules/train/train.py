@@ -93,9 +93,9 @@ def main():
 def run(rank, n_gpus, hps, logger: logging.Logger):
     global global_step
     if rank == 0:
-        # logger = utils.get_logger(hps.model_dir)
+                                                  
         logger.info(hps)
-        # utils.check_git_hash(hps.model_dir)
+                                             
         writer = SummaryWriter(log_dir=hps.model_dir)
         writer_eval = SummaryWriter(log_dir=os.path.join(hps.model_dir, "eval"))
 
@@ -113,8 +113,8 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     train_sampler = DistributedBucketSampler(
         train_dataset,
         hps.train.batch_size * n_gpus,
-        # [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1200,1400],  # 16s
-        [100, 200, 300, 400, 500, 600, 700, 800, 900],  # 16s
+                                                                                
+        [100, 200, 300, 400, 500, 600, 700, 800, 900],       
         num_replicas=n_gpus,
         rank=rank,
         shuffle=True,
@@ -165,8 +165,8 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         betas=hps.train.betas,
         eps=hps.train.eps,
     )
-    # net_g = DDP(net_g, device_ids=[rank], find_unused_parameters=True)
-    # net_d = DDP(net_d, device_ids=[rank], find_unused_parameters=True)
+                                                                        
+                                                                        
     if hasattr(torch, "xpu") and torch.xpu.is_available():
         pass
     elif torch.cuda.is_available():
@@ -176,21 +176,21 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         net_g = DDP(net_g)
         net_d = DDP(net_d)
 
-    try:  # 如果能加载自动resume
+    try:                 
         _, _, _, epoch_str = utils.load_checkpoint(
             utils.latest_checkpoint_path(hps.model_dir, "D_*.pth"), net_d, optim_d
-        )  # D多半加载没事
+        )           
         if rank == 0:
             logger.info("loaded D")
-        # _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), net_g, optim_g,load_opt=0)
+                                                                                                                                       
         _, _, _, epoch_str = utils.load_checkpoint(
             utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), net_g, optim_g
         )
         global_step = (epoch_str - 1) * len(train_loader)
-        # epoch_str = 1
-        # global_step = 0
-    except:  # 如果首次不能加载，加载pretrain
-        # traceback.print_exc()
+                       
+                         
+    except:                       
+                               
         epoch_str = 1
         global_step = 0
         if hps.pretrainG != "":
@@ -201,13 +201,13 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
                     net_g.module.load_state_dict(
                         torch.load(hps.pretrainG, map_location="cpu", weights_only=True)["model"]
                     )
-                )  ##测试不加载优化器
+                )            
             else:
                 logger.info(
                     net_g.load_state_dict(
                         torch.load(hps.pretrainG, map_location="cpu", weights_only=True)["model"]
                     )
-                )  ##测试不加载优化器
+                )            
         if hps.pretrainD != "":
             if rank == 0:
                 logger.info("loaded pretrained %s" % (hps.pretrainD))
@@ -266,29 +266,29 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         scheduler_g.step()
         scheduler_d.step()
 
-def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loaders, logger, writers, cache):
+def train_and_evaluate(rank, epoch, hps, nets, optims, _schedulers, scaler, loaders, logger, writers, cache):
     net_g, net_d = nets; optim_g, optim_d = optims
-    train_loader, _ = loaders  # Eval loader not used in this shortened version
-    if writers: writer, _ = writers  # Writer for TensorBoard
+    train_loader, _ = loaders                                                  
+    if writers: writer, _ = writers                          
 
     train_loader.batch_sampler.set_epoch(epoch)
     global global_step; net_g.train(); net_d.train()
 
     data_iterator = cache if hps.if_cache_data_in_gpu else enumerate(train_loader)
-    if hps.if_cache_data_in_gpu and not cache:  # Populate cache if needed
+    if hps.if_cache_data_in_gpu and not cache:                            
         for batch_idx, info in train_loader:
-            data = [i.cuda(rank, non_blocking=True) if torch.cuda.is_available() else i for i in info] # Move to device
+            data = [i.cuda(rank, non_blocking=True) if torch.cuda.is_available() else i for i in info]                 
             cache.append((batch_idx, data))
     elif hps.if_cache_data_in_gpu:
-        shuffle(cache) # shuffle cache every epoch
+        shuffle(cache)                            
 
     epoch_recorder = EpochRecorder()
     for batch_idx, info in data_iterator:
         if hps.if_cache_data_in_gpu:
             batch_idx, info = info
 
-        phone, phone_lengths, *rest, spec, spec_lengths, wave, _ = info  # Unpack data
-        if hps.if_f0: pitch, pitchf, sid = rest # unpack f0 related data if needed
+        phone, phone_lengths, *rest, spec, spec_lengths, wave, _ = info               
+        if hps.if_f0: pitch, pitchf, sid = rest                                   
         else: sid = rest[0]
 
         with autocast(enabled=hps.train.fp16_run):
@@ -414,7 +414,4 @@ if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn")
     main()
 
-
-
-
-
+

@@ -69,7 +69,7 @@ def to_jit_model(
         model_jit = torch.jit.script(model)
     model_jit.to(device)
     model_jit = model_jit.half() if is_half else model_jit.float()
-    # model = model.half() if is_half else model.float()
+                                                        
     return (model, model_jit)
 
 
@@ -90,7 +90,7 @@ def export(
     model_jit.to(device)
     model_jit = model_jit.half() if is_half else model_jit.float()
     buffer = BytesIO()
-    # model_jit=model_jit.cpu()
+                               
     torch.jit.save(model_jit, buffer)
     del model_jit
     cpt = OrderedDict()
@@ -162,7 +162,4 @@ def synthesizer_jit_export(
     save(cpt, save_path)
     return cpt
 
-
-
-
-
+

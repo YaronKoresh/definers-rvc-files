@@ -45,7 +45,7 @@ class Decoder(nn.Module):
     ):
         super(Decoder, self).__init__()
         self.conv1 = Conv2DBNActiv(nin, nout, ksize, 1, pad, activ=activ)
-        # self.conv2 = Conv2DBNActiv(nout, nout, ksize, 1, pad, activ=activ)
+                                                                            
         self.dropout = nn.Dropout2d(0.1) if dropout else None
 
     def __call__(self, x, skip=None):
@@ -56,7 +56,7 @@ class Decoder(nn.Module):
             x = torch.cat([x, skip], dim=1)
 
         h = self.conv1(x)
-        # h = self.conv2(h)
+                           
 
         if self.dropout is not None:
             h = self.dropout(h)
@@ -115,16 +115,13 @@ class LSTMModule(nn.Module):
 
     def forward(self, x):
         N, _, nbins, nframes = x.size()
-        h = self.conv(x)[:, 0]  # N, nbins, nframes
-        h = h.permute(2, 0, 1)  # nframes, N, nbins
+        h = self.conv(x)[:, 0]                     
+        h = h.permute(2, 0, 1)                     
         h, _ = self.lstm(h)
-        h = self.dense(h.reshape(-1, h.size()[-1]))  # nframes * N, nbins
+        h = self.dense(h.reshape(-1, h.size()[-1]))                      
         h = h.reshape(nframes, N, 1, nbins)
         h = h.permute(1, 2, 3, 0)
 
         return h
 
-
-
-
-
+

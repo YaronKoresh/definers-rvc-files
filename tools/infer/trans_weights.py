@@ -1,4 +1,3 @@
-import pdb
 import torch
 
 a = torch.load(
@@ -8,4 +7,4 @@ a = torch.load(
 ]
 for key in a.keys():
     a[key] = a[key].half()
-torch.save(a, "ft-mi-no_opt-no_dropout.pt")  #
+torch.save(a, "ft-mi-no_opt-no_dropout.pt")   

@@ -10,12 +10,7 @@ from scipy.io import wavfile
 from ..configs.config import Config
 from ..infer.modules.vc.modules import VC
 
-####
-# USAGE
-#
-# In your Terminal or CMD or whatever
-
-
+    
 def arg_parse() -> tuple:
     parser = argparse.ArgumentParser()
     parser.add_argument("--f0up_key", type=int, default=0)

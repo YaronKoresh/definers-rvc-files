@@ -36,7 +36,6 @@ def wav2(i, o, format):
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_audio(file, sr):
-    """Loads audio using librosa, converting with sox if necessary, with improved error handling."""
 
     file = clean_path(file)
     if not os.path.exists(file):
@@ -53,7 +52,7 @@ def load_audio(file, sr):
 
         return audio.astype(np.float32)
 
-    except Exception as e:  # Catch any other exceptions
+    except Exception as e:                              
         catch(e)
 
 def clean_path(path_str):
@@ -61,7 +60,4 @@ def clean_path(path_str):
         path_str = path_str.replace("/", "\\")
     return path_str.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
 
-
-
-
-
+

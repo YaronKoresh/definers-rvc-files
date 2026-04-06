@@ -40,11 +40,11 @@ def cache_harvest_f0(input_audio_path, fs, f0max, f0min, frame_period):
     return f0
 
 
-def change_rms(data1, sr1, data2, sr2, rate):  # 1是输入音频，2是输出音频,rate是2的占比
-    # print(data1.max(),data2.max())
+def change_rms(data1, sr1, data2, sr2, rate):                           
+                                    
     rms1 = librosa.feature.rms(
         y=data1, frame_length=sr1 // 2 * 2, hop_length=sr1 // 2
-    )  # 每半秒一个点
+    )          
     rms2 = librosa.feature.rms(y=data2, frame_length=sr2 // 2 * 2, hop_length=sr2 // 2)
     rms1 = torch.from_numpy(rms1)
     rms1 = F.interpolate(
@@ -71,14 +71,14 @@ class Pipeline:
             config.x_max,
             config.is_half,
         )
-        self.sr = 16000  # hubert输入采样率
-        self.window = 160  # 每帧点数
-        self.t_pad = self.sr * self.x_pad  # 每条前后pad时间
+        self.sr = 16000               
+        self.window = 160        
+        self.t_pad = self.sr * self.x_pad             
         self.t_pad_tgt = tgt_sr * self.x_pad
         self.t_pad2 = self.t_pad * 2
-        self.t_query = self.sr * self.x_query  # 查询切点前后查询时间
-        self.t_center = self.sr * self.x_center  # 查询切点位置
-        self.t_max = self.sr * self.x_max  # 免查询时长阈值
+        self.t_query = self.sr * self.x_query              
+        self.t_center = self.sr * self.x_center          
+        self.t_max = self.sr * self.x_max           
         self.device = config.device
 
     def get_f0(
@@ -120,9 +120,9 @@ class Pipeline:
                 f0 = signal.medfilt(f0, 3)
         elif f0_method == "crepe":
             model = "full"
-            # Pick a batch size that doesn't cause memory errors on your gpu
+                                                                            
             batch_size = 512
-            # Compute pitch using first gpu
+                                           
             audio = torch.tensor(np.copy(x))[None].float()
             f0, pd = torchcrepe.predict(
                 audio,
@@ -153,14 +153,14 @@ class Pipeline:
                 )
             f0 = self.model_rmvpe.infer_from_audio(x, thred=0.03)
 
-            if "privateuseone" in str(self.device):  # clean ortruntime memory
+            if "privateuseone" in str(self.device):                           
                 del self.model_rmvpe.model
                 del self.model_rmvpe
                 logger.info("Cleaning ortruntime memory")
 
         f0 *= pow(2, f0_up_key / 12)
-        # with open("test.txt","w")as f:f.write("\n".join([str(i)for i in f0.tolist()]))
-        tf0 = self.sr // self.window  # 每秒f0点数
+                                                                                        
+        tf0 = self.sr // self.window          
         if inp_f0 is not None:
             delta_t = np.round(
                 (inp_f0[:, 0].max() - inp_f0[:, 0].min()) * tf0 + 1
@@ -172,7 +172,7 @@ class Pipeline:
             f0[self.x_pad * tf0 : self.x_pad * tf0 + len(replace_f0)] = replace_f0[
                 :shape
             ]
-        # with open("test_opt.txt","w")as f:f.write("\n".join([str(i)for i in f0.tolist()]))
+                                                                                            
         f0bak = f0.copy()
         f0_mel = 1127 * np.log(1 + f0 / 700)
         f0_mel[f0_mel > 0] = (f0_mel[f0_mel > 0] - f0_mel_min) * 254 / (
@@ -181,7 +181,7 @@ class Pipeline:
         f0_mel[f0_mel <= 1] = 1
         f0_mel[f0_mel > 255] = 255
         f0_coarse = np.rint(f0_mel).astype(np.int32)
-        return f0_coarse, f0bak  # 1-0
+        return f0_coarse, f0bak       
 
     def vc(
         self,
@@ -197,13 +197,13 @@ class Pipeline:
         index_rate,
         version,
         protect,
-    ):  # ,file_index,file_big_npy
+    ):                            
         feats = torch.from_numpy(audio0)
         if self.is_half:
             feats = feats.half()
         else:
             feats = feats.float()
-        if feats.dim() == 2:  # double channels
+        if feats.dim() == 2:                   
             feats = feats.mean(-1)
         assert feats.dim() == 1, feats.dim()
         feats = feats.view(1, -1)
@@ -229,9 +229,7 @@ class Pipeline:
             if self.is_half:
                 npy = npy.astype("float32")
 
-            # _, I = index.search(npy, 1)
-            # npy = big_npy[I.squeeze()]
-
+                                         
             score, ix = index.search(npy, k=8)
             weight = np.square(1 / score)
             weight /= weight.sum(axis=1, keepdims=True)
@@ -301,14 +299,14 @@ class Pipeline:
     ):
         if (
             file_index != ""
-            # and file_big_npy != ""
-            # and os.path.exists(file_big_npy) == True
+                                    
+                                                      
             and os.path.exists(file_index)
             and index_rate != 0
         ):
             try:
                 index = faiss.read_index(file_index)
-                # big_npy = np.load(file_big_npy)
+                                                 
                 big_npy = index.reconstruct_n(0, index.ntotal)
             except:
                 traceback.print_exc()
@@ -456,7 +454,4 @@ class Pipeline:
             torch.cuda.empty_cache()
         return audio_opt
 
-
-
-
-
+
